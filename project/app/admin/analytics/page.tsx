@@ -135,7 +135,7 @@ export default async function AnalyticsPage() {
                         return (
                             <div
                                 key={i}
-                                className="flex-1 bg-slate-50 rounded-t-3xl transition-all duration-[1.5s] ease-out hover:bg-slate-900 hover:scale-x-110 group relative border border-transparent hover:border-slate-800"
+                                className="flex-1 bg-gradient-to-t from-blue-500 to-purple-600 rounded-t-3xl transition-all duration-[1.5s] ease-out hover:from-blue-400 hover:to-purple-500 hover:scale-x-110 group relative border border-transparent shadow-lg shadow-blue-500/20"
                                 style={{ height: `${Math.max(height, 6)}%` }}
                             >
                                 <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-[10px] font-black text-white px-4 py-3 rounded-2xl opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100 whitespace-nowrap shadow-[0_20px_40px_rgba(0,0,0,0.3)] z-50 pointer-events-none">

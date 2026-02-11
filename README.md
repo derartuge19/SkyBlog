@@ -1,4 +1,4 @@
-# Zemenay Tech - Modern Web Application
+# SkyKin Blog
 
 A modern web application built with Next.js and Radix UI components, providing a responsive and accessible user interface.
 

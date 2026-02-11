@@ -50,7 +50,7 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
                     <div className="text-center py-6">
                         <p className="text-slate-500 mb-6 font-bold text-sm">You must be signed in to join the conversation.</p>
                         <Link
-                            href="/login"
+                            href="/skyadmin/login"
                             className="inline-flex items-center px-8 py-3 bg-blue-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
                         >
                             Sign In to Comment

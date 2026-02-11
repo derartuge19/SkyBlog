@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bell, Check, ExternalLink, Info, AlertTriangle, X } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import { Bell, Check, ExternalLink, Info, AlertTriangle, X, LogOut } from 'lucide-react';
 import { getUnreadNotificationsCount, getRecentNotifications, markNotificationAsRead } from '@/app/actions/admin';
 
 export default function AdminHeader() {
@@ -18,6 +19,7 @@ export default function AdminHeader() {
                 getUnreadNotificationsCount(),
                 getRecentNotifications(5)
             ]);
+            console.log('AdminHeader: Fetched count:', count);
             setUnreadCount(count);
             setNotifications(recent);
         } catch (error) {
@@ -61,21 +63,29 @@ export default function AdminHeader() {
     };
 
     return (
-        <header className="sticky top-0 right-0 z-30 flex items-center justify-end px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <header className="sticky top-0 right-0 z-30 flex items-center justify-end px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm gap-4">
+            <button
+                onClick={() => signOut({ callbackUrl: '/skyadmin/login' })}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all text-xs font-bold uppercase tracking-wider"
+            >
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
+            </button>
+
             <div className="relative" ref={popoverRef}>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="relative p-2.5 rounded-2xl bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300 group"
                 >
                     <Bell className="w-6 h-6" />
-                    {unreadCount > 0 && (
+                    {unreadCount > 0 ? (
                         <span className="absolute top-2 right-2 flex h-4 w-4">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 border-2 border-white text-[8px] font-black text-white items-center justify-center">
                                 {unreadCount > 9 ? '9+' : unreadCount}
                             </span>
                         </span>
-                    )}
+                    ) : null}
                 </button>
 
                 {isOpen && (

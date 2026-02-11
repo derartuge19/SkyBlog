@@ -11,7 +11,7 @@ export default async function AdminLayout({
     const user = await getCurrentUser();
 
     if (!user) {
-        redirect('/login');
+        redirect('/skyadmin/login');
     }
 
     return (

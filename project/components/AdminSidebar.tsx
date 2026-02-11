@@ -148,7 +148,7 @@ export default function AdminSidebar({ userEmail, userName }: AdminSidebarProps)
                     )}
                 </div>
                 <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    onClick={() => signOut({ callbackUrl: '/skyadmin/login' })}
                     className={`mt-3 flex items-center justify-center w-full px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 transition-all duration-200`}
                 >
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
