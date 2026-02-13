@@ -4,6 +4,8 @@ import Link from 'next/link';
 export default async function PostsPage() {
     const posts = await getPosts();
 
+    type PostItem = typeof posts[number];
+
     return (
         <div className="space-y-10 animate-fade-in-up pb-20">
             {/* Page Header */}
@@ -43,7 +45,7 @@ export default async function PostsPage() {
             ) : (
                 <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50">
                     <div className="divide-y divide-slate-50">
-                        {posts.map((post) => (
+                        {posts.map((post: PostItem) => (
                             <div key={post.id} className="px-10 py-8 hover:bg-slate-50/50 transition-colors">
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                                     <div className="flex-1 min-w-0">
