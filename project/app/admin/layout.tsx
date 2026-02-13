@@ -11,7 +11,11 @@ export default async function AdminLayout({
     const user = await getCurrentUser();
 
     if (!user) {
-        redirect('/skyadmin/login');
+        redirect('/skyadmin/login?callbackUrl=/admin');
+    }
+
+    if ((user as any).role !== 'ADMIN' && (user as any).role !== 'SUPER_ADMIN') {
+        redirect('/');
     }
 
     return (
