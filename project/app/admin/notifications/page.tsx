@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 export default async function NotificationsPage() {
     const notifications = await getNotifications();
 
+    type NotificationItem = typeof notifications[number];
+
     const getIcon = (type: string) => {
         switch (type) {
             case 'COMMENT': return <MessageSquare className="w-5 h-5 text-blue-400" />;
@@ -41,7 +43,7 @@ export default async function NotificationsPage() {
                             <p className="text-xs font-black uppercase tracking-widest text-slate-400">No signals detected at this time</p>
                         </div>
                     ) : (
-                        notifications.map((notif) => (
+                        notifications.map((notif: NotificationItem) => (
                             <div
                                 key={notif.id}
                                 className={`p-8 flex items-start gap-6 transition-all hover:bg-slate-50 ${notif.read ? 'opacity-60' : 'bg-blue-50/30 border-l-4 border-l-blue-600'}`}
