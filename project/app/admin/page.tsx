@@ -12,6 +12,8 @@ export default async function AdminDashboard() {
         getNotifications()
     ]);
 
+    type NotificationItem = typeof notifications[number];
+
     const recentPosts = await getPosts();
 
     const stats = [
@@ -147,7 +149,7 @@ export default async function AdminDashboard() {
                                 <p className="text-xs font-black uppercase tracking-widest">No recent signals detected</p>
                             </div>
                         ) : (
-                            notifications.slice(0, 5).map((notif) => (
+                            notifications.slice(0, 5).map((notif: NotificationItem) => (
                                 <div key={notif.id} className="px-10 py-6 flex items-start gap-5 hover:bg-slate-50 transition-colors">
                                     <div className={`p-3 rounded-2xl bg-slate-50 shadow-sm ${notif.read ? 'opacity-40' : ''}`}>
                                         {notif.type === 'LIKE' && <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />}
