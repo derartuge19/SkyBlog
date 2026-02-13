@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache';
 export default async function CommentsAdminPage() {
     const comments = await getAllCommentsForAdmin();
 
+    // Define type based on the return value of getAllCommentsForAdmin
+    type CommentWithRelations = typeof comments[number];
+
     return (
         <div className="space-y-10 animate-fade-in-up pb-20">
             <div>
@@ -32,7 +35,7 @@ export default async function CommentsAdminPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                comments.map((comment) => (
+                                comments.map((comment: CommentWithRelations) => (
                                     <tr key={comment.id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-10 py-8">
                                             <div className="flex items-center">
