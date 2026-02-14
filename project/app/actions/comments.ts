@@ -4,18 +4,20 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
-export async function createComment(postId: string, content: string) {
+export async function createComment(postId: string, content: string, authorName?: string, authorEmail?: string) {
     const user = await getCurrentUser();
 
-    if (!user) {
-        throw new Error('You must be signed in to comment');
+    if (!user && (!authorName || !authorEmail)) {
+        throw new Error('You must be signed in or provide name and email to comment');
     }
 
     const comment = await prisma.comment.create({
         data: {
             content,
             postId,
-            userId: (user as any).id,
+            userId: user ? (user as any).id : undefined,
+            authorName: user ? undefined : authorName,
+            authorEmail: user ? undefined : authorEmail,
             approved: false, // Always false by default for moderation
         },
         include: {
@@ -29,7 +31,7 @@ export async function createComment(postId: string, content: string) {
         await prisma.notification.create({
             data: {
                 type: 'COMMENT',
-                message: `New comment on "${comment.post.title}" by ${comment.user.name || comment.user.email}`,
+                message: `New comment on "${comment.post.title}" by ${user ? (comment.user?.name || comment.user?.email) : authorName}`,
                 userId: comment.post.authorId,
                 postId: comment.post.id,
             }

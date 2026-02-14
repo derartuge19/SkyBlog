@@ -67,11 +67,13 @@ model Comment {
   content   String
   approved  Boolean  @default(false)
   postId    String
-  userId    String
+  userId    String?
+  authorName String?
+  authorEmail String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([postId])
   @@index([userId])

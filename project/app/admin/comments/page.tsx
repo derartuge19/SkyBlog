@@ -3,10 +3,7 @@ import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 
 export default async function CommentsAdminPage() {
-    const comments = await getAllCommentsForAdmin();
-
-    // Define type based on the return value of getAllCommentsForAdmin
-    type CommentWithRelations = typeof comments[number];
+    const comments = (await getAllCommentsForAdmin()) as any[];
 
     return (
         <div className="space-y-10 animate-fade-in-up pb-20">
@@ -35,16 +32,20 @@ export default async function CommentsAdminPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                comments.map((comment: CommentWithRelations) => (
+                                comments.map((comment) => (
                                     <tr key={comment.id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-10 py-8">
                                             <div className="flex items-center">
                                                 <div className="w-10 h-10 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 text-xs font-black mr-4 shadow-inner">
-                                                    {(comment.user.name || comment.user.email).charAt(0).toUpperCase()}
+                                                    {(comment.user?.name || comment.user?.email || comment.authorName || 'A').charAt(0).toUpperCase()}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-base font-black text-slate-900 truncate">{comment.user.name || 'Anonymous'}</p>
-                                                    <p className="text-[10px] text-slate-400 truncate uppercase tracking-tighter">{comment.user.email}</p>
+                                                    <p className="text-base font-black text-slate-900 truncate">
+                                                        {comment.user?.name || comment.authorName || 'Anonymous'}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 truncate uppercase tracking-tighter">
+                                                        {comment.user?.email || comment.authorEmail || 'Guest User'}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </td>
