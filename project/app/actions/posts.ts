@@ -69,66 +69,85 @@ export async function createPost(formData: FormData) {
 }
 
 export async function updatePost(id: string, formData: FormData) {
-    const user = await getCurrentUser();
+    try {
+        const user = await getCurrentUser();
 
-    if (!user) {
-        throw new Error('Unauthorized');
+        if (!user) {
+            throw new Error('Unauthorized');
+        }
+
+        const title = formData.get('title') as string;
+        const content = formData.get('content') as string;
+        const excerpt = formData.get('excerpt') as string;
+        let imageUrl = formData.get('imageUrl') as string;
+        const imageFile = formData.get('image') as File | null;
+        const published = formData.get('published') === 'true';
+
+        // Handle local image upload
+        if (imageFile && imageFile.name && imageFile.size > 0) {
+            const bytes = await imageFile.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+
+            const fileName = `${Date.now()}-${imageFile.name}`;
+            const path = join(process.cwd(), 'public', 'uploads', fileName);
+            await writeFile(path, buffer as any);
+            imageUrl = `/uploads/${fileName}`;
+        }
+
+        // Advanced Features
+        const metaTitle = formData.get('metaTitle') as string;
+        const metaDescription = formData.get('metaDescription') as string;
+        const keywords = formData.get('keywords') as string;
+        const ctaText = formData.get('ctaText') as string;
+        const ctaLink = formData.get('ctaLink') as string;
+
+        // Generate slug from title
+        const slug = title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+
+        const post = await (prisma.post as any).update({
+            where: { id },
+            data: {
+                title,
+                slug,
+                content,
+                excerpt,
+                imageUrl,
+                published,
+                metaTitle,
+                metaDescription,
+                keywords,
+                ctaText,
+                ctaLink,
+            },
+        });
+
+        revalidatePath('/admin/posts');
+        revalidatePath('/admin');
+        revalidatePath('/');
+        revalidatePath(`/blog/${slug}`);
+
+        return post;
+    } catch (err: any) {
+        console.error('SERVER_ACTION_ERROR:', err);
+        // Log to file for deep inspection
+        try {
+            const fs = require('fs');
+            fs.writeFileSync('debug-update-error.log', JSON.stringify({
+                message: err.message,
+                stack: err.stack,
+                id,
+                formData: Array.from(formData.entries()).map(([k, v]) => ({
+                    key: k,
+                    type: typeof v,
+                    value: (v instanceof File) ? `File: ${v.name} (${v.size} bytes)` : v
+                }))
+            }, null, 2));
+        } catch (e) { }
+        throw err;
     }
-
-    const title = formData.get('title') as string;
-    const content = formData.get('content') as string;
-    const excerpt = formData.get('excerpt') as string;
-    let imageUrl = formData.get('imageUrl') as string;
-    const imageFile = formData.get('image') as File | null;
-    const published = formData.get('published') === 'true';
-
-    // Handle local image upload
-    if (imageFile && imageFile.name && imageFile.size > 0) {
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        const fileName = `${Date.now()}-${imageFile.name}`;
-        const path = join(process.cwd(), 'public', 'uploads', fileName);
-        await writeFile(path, buffer as any);
-        imageUrl = `/uploads/${fileName}`;
-    }
-
-    // Advanced Features
-    const metaTitle = formData.get('metaTitle') as string;
-    const metaDescription = formData.get('metaDescription') as string;
-    const keywords = formData.get('keywords') as string;
-    const ctaText = formData.get('ctaText') as string;
-    const ctaLink = formData.get('ctaLink') as string;
-
-    // Generate slug from title
-    const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
-    const post = await (prisma.post as any).update({
-        where: { id },
-        data: {
-            title,
-            slug,
-            content,
-            excerpt,
-            imageUrl,
-            published,
-            metaTitle,
-            metaDescription,
-            keywords,
-            ctaText,
-            ctaLink,
-        },
-    });
-
-    revalidatePath('/admin/posts');
-    revalidatePath('/admin');
-    revalidatePath('/');
-    revalidatePath(`/blog/${slug}`);
-
-    return post;
 }
 
 export async function deletePost(id: string) {
