@@ -6,66 +6,103 @@ import { getCurrentUser } from '@/lib/auth';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+// The library will automatically use CLOUDINARY_URL if it's present in the environment
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dccusxayt',
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+});
+
 export async function createPost(formData: FormData) {
-    const user = await getCurrentUser();
+    try {
+        const user = await getCurrentUser();
 
-    if (!user) {
-        throw new Error('Unauthorized');
+        if (!user) {
+            throw new Error('Unauthorized');
+        }
+
+        const title = formData.get('title') as string;
+        const content = formData.get('content') as string;
+        const excerpt = formData.get('excerpt') as string;
+        let imageUrl = formData.get('imageUrl') as string;
+        const imageFile = formData.get('image') as File | null;
+        const published = formData.get('published') === 'true';
+
+        // Handle image upload with Cloudinary
+        if (imageFile && imageFile.name && imageFile.size > 0) {
+            const bytes = await imageFile.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+
+            // Upload to Cloudinary using a promise to handle the stream-like data
+            const uploadResult = await new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    { folder: 'skyblog' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                ).end(buffer);
+            }) as any;
+
+            imageUrl = uploadResult.secure_url;
+        }
+
+        // Advanced Features
+        const metaTitle = formData.get('metaTitle') as string;
+        const metaDescription = formData.get('metaDescription') as string;
+        const keywords = formData.get('keywords') as string;
+        const ctaText = formData.get('ctaText') as string;
+        const ctaLink = formData.get('ctaLink') as string;
+
+        // Generate slug from title
+        const slug = title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+
+        const post = await (prisma.post as any).create({
+            data: {
+                title,
+                slug,
+                content,
+                excerpt,
+                imageUrl,
+                published,
+                metaTitle,
+                metaDescription,
+                keywords,
+                ctaText,
+                ctaLink,
+                authorId: (user as any).id,
+            },
+        });
+
+        revalidatePath('/admin/posts');
+        revalidatePath('/admin');
+        revalidatePath('/');
+
+        return post;
+    } catch (err: any) {
+        console.error('CREATE_POST_ERROR:', err);
+        // Log to file for deep inspection
+        try {
+            const fs = require('fs');
+            fs.writeFileSync('debug-create-error.log', JSON.stringify({
+                message: err.message,
+                stack: err.stack,
+                formData: Array.from(formData.entries()).map(([k, v]) => ({
+                    key: k,
+                    type: typeof v,
+                    value: (v instanceof File) ? `File: ${v.name} (${v.size} bytes)` : v
+                }))
+            }, null, 2));
+        } catch (e) { }
+        throw err;
     }
-
-    const title = formData.get('title') as string;
-    const content = formData.get('content') as string;
-    const excerpt = formData.get('excerpt') as string;
-    let imageUrl = formData.get('imageUrl') as string;
-    const imageFile = formData.get('image') as File | null;
-    const published = formData.get('published') === 'true';
-
-    // Handle local image upload
-    if (imageFile && imageFile.name && imageFile.size > 0) {
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        const fileName = `${Date.now()}-${imageFile.name}`;
-        const path = join(process.cwd(), 'public', 'uploads', fileName);
-        await writeFile(path, buffer as any);
-        imageUrl = `/uploads/${fileName}`;
-    }
-
-    // Advanced Features
-    const metaTitle = formData.get('metaTitle') as string;
-    const metaDescription = formData.get('metaDescription') as string;
-    const keywords = formData.get('keywords') as string;
-    const ctaText = formData.get('ctaText') as string;
-    const ctaLink = formData.get('ctaLink') as string;
-
-    // Generate slug from title
-    const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-
-    const post = await (prisma.post as any).create({
-        data: {
-            title,
-            slug,
-            content,
-            excerpt,
-            imageUrl,
-            published,
-            metaTitle,
-            metaDescription,
-            keywords,
-            ctaText,
-            ctaLink,
-            authorId: (user as any).id,
-        },
-    });
-
-    revalidatePath('/admin/posts');
-    revalidatePath('/admin');
-    revalidatePath('/');
-
-    return post;
 }
 
 export async function updatePost(id: string, formData: FormData) {
@@ -83,15 +120,23 @@ export async function updatePost(id: string, formData: FormData) {
         const imageFile = formData.get('image') as File | null;
         const published = formData.get('published') === 'true';
 
-        // Handle local image upload
+        // Handle image upload with Cloudinary
         if (imageFile && imageFile.name && imageFile.size > 0) {
             const bytes = await imageFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
 
-            const fileName = `${Date.now()}-${imageFile.name}`;
-            const path = join(process.cwd(), 'public', 'uploads', fileName);
-            await writeFile(path, buffer as any);
-            imageUrl = `/uploads/${fileName}`;
+            // Upload to Cloudinary
+            const uploadResult = await new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    { folder: 'skyblog' },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                ).end(buffer);
+            }) as any;
+
+            imageUrl = uploadResult.secure_url;
         }
 
         // Advanced Features
