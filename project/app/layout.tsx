@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   keywords: 'blog, technology, design, innovation, skykin, skyblog',
   authors: [{ name: 'SkyKin' }],
   viewport: 'width=device-width, initial-scale=1',
+  icons: {
+    icon: '/images/FavSky.png',
+    apple: '/images/FavSky.png',
+  },
 };
 
 export default function RootLayout({

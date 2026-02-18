@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/lib/auth';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 
 export async function createPost(formData: FormData) {
     const user = await getCurrentUser();
@@ -14,8 +16,20 @@ export async function createPost(formData: FormData) {
     const title = formData.get('title') as string;
     const content = formData.get('content') as string;
     const excerpt = formData.get('excerpt') as string;
-    const imageUrl = formData.get('imageUrl') as string;
+    let imageUrl = formData.get('imageUrl') as string;
+    const imageFile = formData.get('image') as File | null;
     const published = formData.get('published') === 'true';
+
+    // Handle local image upload
+    if (imageFile && imageFile.name && imageFile.size > 0) {
+        const bytes = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        const fileName = `${Date.now()}-${imageFile.name}`;
+        const path = join(process.cwd(), 'public', 'uploads', fileName);
+        await writeFile(path, buffer as any);
+        imageUrl = `/uploads/${fileName}`;
+    }
 
     // Advanced Features
     const metaTitle = formData.get('metaTitle') as string;
@@ -64,8 +78,20 @@ export async function updatePost(id: string, formData: FormData) {
     const title = formData.get('title') as string;
     const content = formData.get('content') as string;
     const excerpt = formData.get('excerpt') as string;
-    const imageUrl = formData.get('imageUrl') as string;
+    let imageUrl = formData.get('imageUrl') as string;
+    const imageFile = formData.get('image') as File | null;
     const published = formData.get('published') === 'true';
+
+    // Handle local image upload
+    if (imageFile && imageFile.name && imageFile.size > 0) {
+        const bytes = await imageFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        const fileName = `${Date.now()}-${imageFile.name}`;
+        const path = join(process.cwd(), 'public', 'uploads', fileName);
+        await writeFile(path, buffer as any);
+        imageUrl = `/uploads/${fileName}`;
+    }
 
     // Advanced Features
     const metaTitle = formData.get('metaTitle') as string;

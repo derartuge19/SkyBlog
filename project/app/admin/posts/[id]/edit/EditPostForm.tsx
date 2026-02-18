@@ -25,6 +25,18 @@ interface EditPostFormProps {
 export default function EditPostForm({ post }: EditPostFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(post.imageUrl);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -103,17 +115,51 @@ export default function EditPostForm({ post }: EditPostFormProps) {
                             <label htmlFor="imageUrl" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
                                 <span className="flex items-center gap-2">
                                     <ImageIcon className="w-3 h-3" />
-                                    Featured Asset (URL)
+                                    Featured Asset
                                 </span>
                             </label>
-                            <input
-                                type="url"
-                                name="imageUrl"
-                                id="imageUrl"
-                                defaultValue={post.imageUrl || ''}
-                                placeholder="https://cdn.skykin.com/assets/img.jpg"
-                                className="w-full bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl px-8 py-5 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all placeholder:text-slate-300 text-sm font-medium"
-                            />
+                            <div className="space-y-4">
+                                <input
+                                    type="url"
+                                    name="imageUrl"
+                                    id="imageUrl"
+                                    defaultValue={post.imageUrl || ''}
+                                    placeholder="External URL (e.g., https://...)"
+                                    className="w-full bg-slate-50 border border-slate-100 text-slate-900 rounded-2xl px-8 py-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/50 outline-none transition-all placeholder:text-slate-300 text-sm font-medium"
+                                />
+
+                                <div className="relative group/upload">
+                                    <input
+                                        type="file"
+                                        name="image"
+                                        id="image"
+                                        accept="image/*"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
+                                    <label
+                                        htmlFor="image"
+                                        className="flex flex-col items-center justify-center w-full min-h-[140px] px-8 py-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl hover:bg-slate-100/50 hover:border-blue-400/50 transition-all cursor-pointer group-hover/upload:shadow-inner"
+                                    >
+                                        {imagePreview ? (
+                                            <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg ring-4 ring-white">
+                                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <span className="text-white text-[10px] font-black uppercase tracking-widest">Change Image</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="p-4 rounded-full bg-white shadow-sm mb-3 group-hover/upload:scale-110 transition-transform">
+                                                    <ImageIcon className="w-6 h-6 text-slate-400 group-hover/upload:text-blue-500" />
+                                                </div>
+                                                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Upload Local Asset</p>
+                                                <p className="text-[10px] text-slate-400 mt-1 font-medium">PNG, JPG, WebP up to 5MB</p>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div className="flex items-end pb-5">
                             <label className="flex items-center gap-4 cursor-pointer group">
