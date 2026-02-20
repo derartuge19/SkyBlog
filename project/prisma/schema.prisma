@@ -115,12 +115,13 @@ model GlobalSettings {
 model Like {
   id        String   @id @default(cuid())
   postId    String
-  userId    String
+  userId    String?
+  ipAddress String?
   createdAt DateTime @default(now())
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
+  @@index([ipAddress])
 }

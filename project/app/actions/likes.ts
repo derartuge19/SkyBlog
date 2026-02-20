@@ -3,19 +3,16 @@
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 export async function toggleLike(postId: string) {
     try {
         const user = await getCurrentUser();
+        const headerList = headers();
+        // Get IP address for anonymous tracking
+        const ipAddress = headerList.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
-        if (!user) {
-            throw new Error('You must be logged in to like a post');
-        }
-
-        const userId = (user as any).id;
-        if (!userId) {
-            throw new Error('User ID not found');
-        }
+        const userId = (user as any)?.id;
 
         // Validate post exists
         const post = await prisma.post.findUnique({
@@ -27,15 +24,25 @@ export async function toggleLike(postId: string) {
             throw new Error('Post not found');
         }
 
-        // Check if like exists
-        const existingLike = await prisma.like.findUnique({
-            where: {
-                postId_userId: {
+        // Check if like exists - try by userId first, then ipAddress if not logged in
+        let existingLike;
+        if (userId) {
+            existingLike = await prisma.like.findFirst({
+                where: {
                     postId,
                     userId,
                 },
-            },
-        });
+            });
+        } else {
+            existingLike = await prisma.like.findFirst({
+                where: {
+                    postId,
+                    ipAddress,
+                    // @ts-ignore
+                    userId: { equals: null }, // Explicit null check for strict types
+                },
+            });
+        }
 
         if (existingLike) {
             // Unlike
@@ -49,24 +56,26 @@ export async function toggleLike(postId: string) {
             await prisma.like.create({
                 data: {
                     postId,
-                    userId,
+                    userId: userId || null,
+                    // @ts-ignore - ipAddress exists in schema and DB, but client types may be lagging
+                    ipAddress: userId ? null : ipAddress,
                 },
             });
 
-            // Create notification for post author
-            if (post.authorId !== userId) {
+            // Create notification for post author (only if logged in or if we want to notify for anon)
+            if (post.authorId && post.authorId !== userId) {
                 try {
+                    const identifier = user?.name || user?.email || 'A visitor';
                     await prisma.notification.create({
                         data: {
                             type: 'LIKE',
-                            message: `${user.name || user.email} liked your post "${post.title}"`,
+                            message: `${identifier} liked your post "${post.title}"`,
                             userId: post.authorId,
                             postId: postId,
                         }
                     });
                 } catch (error) {
                     console.error('Failed to create notification:', error);
-                    // Don't throw here, just log. Like creation was successful.
                 }
             }
         }
@@ -82,28 +91,42 @@ export async function toggleLike(postId: string) {
 }
 
 export async function getLikeStatus(postId: string) {
-    const user = await getCurrentUser();
+    try {
+        const user = await getCurrentUser();
+        const headerList = headers();
+        const ipAddress = headerList.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
-    if (!user) return { liked: false, count: 0 };
+        const userId = (user as any)?.id;
 
-    const userId = (user as any).id;
-
-    const [like, count] = await Promise.all([
-        prisma.like.findUnique({
-            where: {
-                postId_userId: {
+        let like;
+        if (userId) {
+            like = await prisma.like.findFirst({
+                where: {
                     postId,
                     userId,
                 },
-            },
-        }),
-        prisma.like.count({
-            where: { postId },
-        }),
-    ]);
+            });
+        } else {
+            like = await prisma.like.findFirst({
+                where: {
+                    postId,
+                    ipAddress,
+                    // @ts-ignore
+                    userId: null,
+                },
+            });
+        }
 
-    return {
-        liked: !!like,
-        count,
-    };
+        const count = await prisma.like.count({
+            where: { postId },
+        });
+
+        return {
+            liked: !!like,
+            count,
+        };
+    } catch (error) {
+        console.error('GET_LIKE_STATUS_ERROR:', error);
+        return { liked: false, count: 0 };
+    }
 }
