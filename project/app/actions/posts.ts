@@ -82,7 +82,7 @@ export async function createPost(formData: FormData) {
         });
 
         revalidatePath('/admin/posts');
-        revalidatePath('/admin');
+        revalidatePath('/admin/dashboard');
         revalidatePath('/');
 
         return post;
@@ -170,7 +170,7 @@ export async function updatePost(id: string, formData: FormData) {
         });
 
         revalidatePath('/admin/posts');
-        revalidatePath('/admin');
+        revalidatePath('/admin/dashboard');
         revalidatePath('/');
         revalidatePath(`/blog/${slug}`);
 
@@ -207,7 +207,7 @@ export async function deletePost(id: string) {
     });
 
     revalidatePath('/admin/posts');
-    revalidatePath('/admin');
+    revalidatePath('/admin/dashboard');
     revalidatePath('/');
 }
 
@@ -227,7 +227,7 @@ export async function togglePublish(id: string) {
     });
 
     revalidatePath('/admin/posts');
-    revalidatePath('/admin');
+    revalidatePath('/admin/dashboard');
     revalidatePath('/');
     if (post.slug) revalidatePath(`/blog/${post.slug}`);
 }

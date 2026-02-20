@@ -65,7 +65,7 @@ export default function AdminHeader() {
     return (
         <header className="sticky top-0 right-0 z-30 flex items-center justify-end px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm gap-4">
             <button
-                onClick={() => signOut({ callbackUrl: '/skyadmin/login' })}
+                onClick={() => signOut({ callbackUrl: '/admin/login' })}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-all text-xs font-bold uppercase tracking-wider"
             >
                 <LogOut className="w-4 h-4" />

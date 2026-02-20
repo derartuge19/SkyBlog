@@ -18,7 +18,7 @@ export async function updateProfile(formData: FormData) {
     });
 
     revalidatePath('/admin/settings');
-    revalidatePath('/admin');
+    revalidatePath('/admin/dashboard');
 }
 
 export async function changePassword(formData: FormData) {

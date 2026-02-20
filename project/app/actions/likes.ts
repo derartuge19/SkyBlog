@@ -5,66 +5,80 @@ import { getCurrentUser } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 export async function toggleLike(postId: string) {
-    const user = await getCurrentUser();
+    try {
+        const user = await getCurrentUser();
 
-    if (!user) {
-        throw new Error('You must be logged in to like a post');
-    }
+        if (!user) {
+            throw new Error('You must be logged in to like a post');
+        }
 
-    const userId = (user as any).id;
+        const userId = (user as any).id;
+        if (!userId) {
+            throw new Error('User ID not found');
+        }
 
-    // Check if like exists
-    const existingLike = await prisma.like.findUnique({
-        where: {
-            postId_userId: {
-                postId,
-                userId,
-            },
-        },
-    });
+        // Validate post exists
+        const post = await prisma.post.findUnique({
+            where: { id: postId },
+            select: { slug: true, title: true, authorId: true }
+        });
 
-    const post = await prisma.post.findUnique({
-        where: { id: postId },
-        select: { slug: true, title: true, authorId: true }
-    });
+        if (!post) {
+            throw new Error('Post not found');
+        }
 
-    if (existingLike) {
-        // Unlike
-        await prisma.like.delete({
+        // Check if like exists
+        const existingLike = await prisma.like.findUnique({
             where: {
-                id: existingLike.id,
-            },
-        });
-    } else {
-        // Like
-        await prisma.like.create({
-            data: {
-                postId,
-                userId,
+                postId_userId: {
+                    postId,
+                    userId,
+                },
             },
         });
 
-        // Create notification for post author
-        if (post && post.authorId !== userId) {
-            try {
-                await prisma.notification.create({
-                    data: {
-                        type: 'LIKE',
-                        message: `${user.name || user.email} liked your post "${post.title}"`,
-                        userId: post.authorId,
-                        postId: postId,
-                    }
-                });
-            } catch (error) {
-                console.error('Failed to create notification:', error);
+        if (existingLike) {
+            // Unlike
+            await prisma.like.delete({
+                where: {
+                    id: existingLike.id,
+                },
+            });
+        } else {
+            // Like
+            await prisma.like.create({
+                data: {
+                    postId,
+                    userId,
+                },
+            });
+
+            // Create notification for post author
+            if (post.authorId !== userId) {
+                try {
+                    await prisma.notification.create({
+                        data: {
+                            type: 'LIKE',
+                            message: `${user.name || user.email} liked your post "${post.title}"`,
+                            userId: post.authorId,
+                            postId: postId,
+                        }
+                    });
+                } catch (error) {
+                    console.error('Failed to create notification:', error);
+                    // Don't throw here, just log. Like creation was successful.
+                }
             }
         }
-    }
 
-    if (post?.slug) {
-        revalidatePath(`/blog/${post.slug}`);
+        if (post.slug) {
+            revalidatePath(`/blog/${post.slug}`);
+        }
+        revalidatePath('/');
+    } catch (error: any) {
+        console.error('TOGGLE_LIKE_ERROR:', error);
+        throw new Error(error.message || 'Failed to toggle like');
     }
-    revalidatePath('/');
 }
 
 export async function getLikeStatus(postId: string) {
