@@ -96,13 +96,13 @@ export default async function BlogPostPage({
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <span className="font-black text-slate-900 text-[11px] uppercase tracking-wider">{post._count.views} Views</span>
+                                <span className="font-black text-slate-900 text-[11px] uppercase tracking-wider">{(post._count?.views || 0)} Views</span>
                             </div>
                             <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
                                 <svg className="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                                 </svg>
-                                <span className="font-black text-slate-900 text-[11px] uppercase tracking-wider">{post._count.comments} Comments</span>
+                                <span className="font-black text-slate-900 text-[11px] uppercase tracking-wider">{(post._count?.comments || 0)} Comments</span>
                             </div>
                         </div>
                     </div>
@@ -134,7 +134,7 @@ export default async function BlogPostPage({
                                 <LikeButton
                                     postId={post.id}
                                     initialLiked={post.isLiked}
-                                    initialCount={post._count.likes}
+                                    initialCount={post._count?.likes || 0}
                                 />
                             </div>
 
@@ -192,7 +192,7 @@ export default async function BlogPostPage({
                                 <div>
                                     <h4 className="text-xl font-black text-slate-900 mb-2">{post.author?.name || post.author?.email || 'Admin Expert'}</h4>
                                     <p className="text-slate-500 leading-relaxed font-medium">
-                                        {post.author.bio}
+                                        {post.author?.bio}
                                     </p>
                                 </div>
                             </div>
@@ -218,9 +218,11 @@ export default async function BlogPostPage({
                                                 )}
                                             </div>
                                             <div className="px-2">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-2 block">{rp.categories[0]?.name}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-2 block">
+                                                    {rp.categories?.[0]?.name || 'Insights'}
+                                                </span>
                                                 <h4 className="text-md font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
-                                                    {rp.title}
+                                                    {rp.title || 'Untitled Article'}
                                                 </h4>
                                             </div>
                                         </Link>
@@ -235,7 +237,7 @@ export default async function BlogPostPage({
                                 <LikeButton
                                     postId={post.id}
                                     initialLiked={post.isLiked}
-                                    initialCount={post._count.likes}
+                                    initialCount={post._count?.likes || 0}
                                 />
                                 <div className="w-[1px] h-8 bg-slate-200 mx-2" />
                                 <div className="flex items-center space-x-2">
@@ -254,7 +256,7 @@ export default async function BlogPostPage({
                                         href={`/?category=${cat.slug}`}
                                         className="px-6 py-2 rounded-xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
                                     >
-                                        #{cat.name.toUpperCase()}
+                                        #{cat.name?.toUpperCase() || 'TAG'}
                                     </Link>
                                 ))}
                             </div>
