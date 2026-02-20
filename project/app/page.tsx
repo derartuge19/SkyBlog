@@ -251,9 +251,9 @@ export default async function HomePage({
       {/* Footer */}
       <footer className="bg-slate-50 pt-24 pb-12 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-16 mb-20">
-            <div className="col-span-2">
-              <Link href="/" className="flex items-center space-x-4 mb-8">
+          <div className="flex flex-col items-center text-center mb-20">
+            <div className="max-w-2xl">
+              <Link href="/" className="inline-flex items-center space-x-4 mb-8">
                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -263,24 +263,9 @@ export default async function HomePage({
                   {COMPANY_INFO.name}
                 </span>
               </Link>
-              <p className="text-slate-500 text-lg leading-relaxed max-w-sm">
+              <p className="text-slate-500 text-lg leading-relaxed">
                 {COMPANY_INFO.description}
               </p>
-            </div>
-            <div>
-              <h4 className="text-slate-900 font-black uppercase tracking-widest text-xs mb-8">Explore</h4>
-              <ul className="space-y-4 text-sm font-bold text-slate-500">
-                <li><Link href="/" className="hover:text-blue-600 transition-colors">Latest Insights</Link></li>
-                <li><Link href="/about" className="hover:text-blue-600 transition-colors">Our Vision</Link></li>
-                <li><Link href="/services" className="hover:text-blue-600 transition-colors">Solutions</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-slate-900 font-black uppercase tracking-widest text-xs mb-8">Support</h4>
-              <ul className="space-y-4 text-sm font-bold text-slate-500">
-                <li><Link href="/contact" className="hover:text-blue-600 transition-colors">Get in Touch</Link></li>
-                <li><Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
-              </ul>
             </div>
           </div>
           <div className="pt-12 border-t border-slate-200 text-center">
