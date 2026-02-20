@@ -8,7 +8,7 @@ export default withAuth(
     },
     {
         pages: {
-            signIn: '/skyadmin/login',
+            signIn: '/admin/login',
         },
     }
 );

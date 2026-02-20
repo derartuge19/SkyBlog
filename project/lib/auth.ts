@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         },
     },
     pages: {
-        signIn: '/skyadmin/login',
+        signIn: '/admin/login',
     },
     session: {
         strategy: 'jwt',
