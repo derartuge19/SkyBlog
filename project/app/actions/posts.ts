@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/lib/auth';
+import { headers } from 'next/headers';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 
@@ -343,13 +344,25 @@ export async function getPostBySlug(slug: string) {
         let isLiked = false;
         try {
             const user = await getCurrentUser();
-            if (user && (user as any).id) {
-                const liked = await prisma.like.findUnique({
+            const headerList = headers();
+            const ipAddress = headerList.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+            const userId = (user as any)?.id;
+
+            if (userId) {
+                const liked = await prisma.like.findFirst({
                     where: {
-                        postId_userId: {
-                            postId: post.id,
-                            userId: (user as any).id,
-                        },
+                        postId: post.id,
+                        userId,
+                    },
+                });
+                isLiked = !!liked;
+            } else {
+                const liked = await prisma.like.findFirst({
+                    where: {
+                        postId: post.id,
+                        ipAddress,
+                        // @ts-ignore
+                        userId: null,
                     },
                 });
                 isLiked = !!liked;
