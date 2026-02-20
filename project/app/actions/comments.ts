@@ -53,7 +53,7 @@ export async function createComment(postId: string, content: string, authorName?
 }
 
 export async function getPostComments(postId: string) {
-    return await prisma.comment.findMany({
+    const comments = await prisma.comment.findMany({
         where: {
             postId,
             approved: true,
@@ -70,6 +70,8 @@ export async function getPostComments(postId: string) {
             createdAt: 'desc',
         },
     });
+
+    return JSON.parse(JSON.stringify(comments));
 }
 
 export async function getPendingComments() {

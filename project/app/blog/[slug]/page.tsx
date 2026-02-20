@@ -184,13 +184,13 @@ export default async function BlogPostPage({
                         )}
 
                         {/* Author Bio (Trust) */}
-                        {post.author.bio && (
+                        {post.author?.bio && (
                             <div className="mt-20 p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 flex flex-col md:flex-row items-center md:items-start gap-8">
                                 <div className="w-24 h-24 shrink-0 bg-blue-100 rounded-[2rem] flex items-center justify-center text-blue-600 font-black text-3xl shadow-lg border-4 border-white">
-                                    {post.author.name?.charAt(0) || post.author.email.charAt(0)}
+                                    {(post.author?.name || post.author?.email || 'A').charAt(0)}
                                 </div>
                                 <div>
-                                    <h4 className="text-xl font-black text-slate-900 mb-2">{post.author.name || 'Admin Expert'}</h4>
+                                    <h4 className="text-xl font-black text-slate-900 mb-2">{post.author?.name || post.author?.email || 'Admin Expert'}</h4>
                                     <p className="text-slate-500 leading-relaxed font-medium">
                                         {post.author.bio}
                                     </p>

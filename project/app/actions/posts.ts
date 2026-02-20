@@ -305,7 +305,7 @@ export async function getPosts(options: {
                     comments: { where: { approved: true } },
                     views: true,
                     likes: true
-                } as any
+                }
             }
         },
         orderBy: {
@@ -316,64 +316,78 @@ export async function getPosts(options: {
 }
 
 export async function getPostBySlug(slug: string) {
-    const post = await prisma.post.findUnique({
-        where: { slug },
-        include: {
-            author: {
-                select: {
-                    name: true,
-                    email: true,
-                    bio: true,
+    try {
+        const post = await prisma.post.findUnique({
+            where: { slug },
+            include: {
+                author: {
+                    select: {
+                        name: true,
+                        email: true,
+                        bio: true,
+                    },
                 },
-            },
-            categories: true,
-            _count: {
-                select: {
-                    comments: { where: { approved: true } },
-                    views: true,
-                    likes: true
+                categories: true,
+                _count: {
+                    select: {
+                        comments: { where: { approved: true } },
+                        views: true,
+                        likes: true
+                    }
                 }
             }
-        } as any,
-    });
+        });
 
-    if (!post) return null;
+        if (!post) return null;
 
-    const user = await getCurrentUser();
-    const liked = user ? await (prisma as any).like.findUnique({
-        where: {
-            postId_userId: {
-                postId: post.id,
-                userId: (user as any).id,
-            },
-        },
-    }) : null;
-
-    // Get related posts
-    const relatedPosts = await prisma.post.findMany({
-        where: {
-            published: true,
-            id: { not: post.id },
-            categories: {
-                some: {
-                    id: { in: (post as any).categories?.map((c: any) => c.id) || [] }
-                }
+        let isLiked = false;
+        try {
+            const user = await getCurrentUser();
+            if (user && (user as any).id) {
+                const liked = await prisma.like.findUnique({
+                    where: {
+                        postId_userId: {
+                            postId: post.id,
+                            userId: (user as any).id,
+                        },
+                    },
+                });
+                isLiked = !!liked;
             }
-        },
-        take: 3,
-        include: {
-            categories: true,
-            _count: {
-                select: { views: true }
-            }
+        } catch (error) {
+            console.error('Failed to fetch like status:', error);
         }
-    });
 
-    return {
-        ...post,
-        isLiked: !!liked,
-        relatedPosts,
-    };
+        // Get related posts
+        const relatedPosts = await prisma.post.findMany({
+            where: {
+                published: true,
+                id: { not: post.id },
+                categories: {
+                    some: {
+                        id: { in: (post as any).categories?.map((c: any) => c.id) || [] }
+                    }
+                }
+            },
+            take: 3,
+            include: {
+                categories: true,
+                _count: {
+                    select: { views: true }
+                }
+            }
+        });
+
+        // Convert to plain object for client component safety
+        return JSON.parse(JSON.stringify({
+            ...post,
+            isLiked,
+            relatedPosts,
+        }));
+    } catch (error) {
+        console.error('CRITICAL_GET_POST_ERROR:', error);
+        return null;
+    }
 }
 
 export async function getPostById(id: string) {
